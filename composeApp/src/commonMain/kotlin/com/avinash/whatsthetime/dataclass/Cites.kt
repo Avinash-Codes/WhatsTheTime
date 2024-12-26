@@ -2,7 +2,7 @@ package com.avinash.whatsthetime.dataclass
 
 import kotlinx.datetime.TimeZone
 
-data class Cites(val name: String, val timeZone: TimeZone)
+data class Cites(val name: String, val timeZoneId: TimeZone)
 
 val cites = listOf(
     Cites("Abidjan", TimeZone.of("Africa/Abidjan")),
