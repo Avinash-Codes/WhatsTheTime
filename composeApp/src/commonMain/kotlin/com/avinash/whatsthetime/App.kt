@@ -1,57 +1,28 @@
 package com.avinash.whatsthetime
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalMapOf
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.romainguy.kotlin.math.degrees
-import dev.romainguy.kotlin.math.min
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.datetime.IllegalTimeZoneException
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import whatsthetime.composeapp.generated.resources.Res
-import whatsthetime.composeapp.generated.resources.compose_multiplatform
-import whatsthetime.composeapp.generated.resources.dot
-import whatsthetime.composeapp.generated.resources.hour
-import whatsthetime.composeapp.generated.resources.minute
-import whatsthetime.composeapp.generated.resources.sec
-import whatsthetime.composeapp.generated.resources.white_clock
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -74,7 +45,46 @@ fun currentDateAndTime(location: String): Pair<String?, String?> {
 @Preview
 fun App() {
     MaterialTheme {
-        val currentTime = remember { mutableStateOf(currentDateAndTime("Asia/Kolkata")) }
+        val currentTime = rememberSaveable { mutableStateOf(currentDateAndTime("Asia/Kolkata")) }
+
+        // Get initial rotations based on current time
+        val (_, time) = currentTime.value
+        val (hours, minutes, seconds) = time?.split(":")?.map { it.toInt() } ?: listOf(0, 0, 0)
+
+        // Calculate initial positions (in degrees)
+        val initialSecondRotation = (seconds * 6f) // 6 degrees per second
+        val initialMinuteRotation = (minutes * 6f) + (seconds * 0.1f) // 6 degrees per minute + slight adjustment for seconds
+        val initialHourRotation = (hours % 12 * 30f) + (minutes * 0.5f) // 30 degrees per hour + adjustment for minutes
+
+        // Create animated rotation values with correct initial positions
+        val infiniteTransition = rememberInfiniteTransition()
+
+        val secondRotation by infiniteTransition.animateFloat(
+            initialValue = initialSecondRotation,
+            targetValue = initialSecondRotation + 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(60000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            )
+        )
+
+        val minuteRotation by infiniteTransition.animateFloat(
+            initialValue = initialMinuteRotation,
+            targetValue = initialMinuteRotation + 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(3600000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            )
+        )
+
+        val hourRotation by infiniteTransition.animateFloat(
+            initialValue = initialHourRotation,
+            targetValue = initialHourRotation + 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(43200000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            )
+        )
 
         LaunchedEffect(Unit) {
             while (true) {
@@ -82,13 +92,6 @@ fun App() {
                 delay(1000)
             }
         }
-
-        val (date, time) = currentTime.value
-        val (hours, minutes, seconds) = time?.split(":")?.map { it.toInt() } ?: listOf(0, 0, 0)
-
-        val hourRotation = (hours % 12) * 30f + minutes * 0.5f
-        val minuteRotation = minutes * 6f + seconds * 0.1f
-        val secondRotation = seconds * 6f
 
         Box(
             modifier = Modifier
@@ -101,9 +104,7 @@ fun App() {
                     modifier = Modifier.size(350.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Clock Face
                     Canvas(modifier = Modifier.fillMaxSize()) {
-
                         val circleCenter = center
                         val outerCircleRadius = size.minDimension / 2f
                         val littleLine = outerCircleRadius * 0.05f
@@ -124,22 +125,21 @@ fun App() {
                             )
                         )
 
-                        //the outer frame circle
+                        // Outer frame circle
                         drawCircle(
                             brush = outerCircleBrush,
                             radius = outerCircleRadius,
                             center = circleCenter
                         )
 
-                        //it is the inner circle
+                        // Inner circle
                         drawCircle(
                             brush = innerCircleBrush,
                             radius = outerCircleRadius - 110,
                             center = circleCenter
                         )
 
-                        val markerMargin =
-                            littleLine * 0.9f // Adjust this value for the space you want between the circle and markers
+                        val markerMargin = littleLine * 0.9f
 
                         // Draw markers
                         for (i in 0 until 60) {
@@ -172,81 +172,50 @@ fun App() {
                             )
                         }
 
-                        val clockHands =
-                            listOf(ClockHands.seconds, ClockHands.minutes, ClockHands.hours)
+                        val clockHands = listOf(ClockHands.seconds, ClockHands.minutes, ClockHands.hours)
 
                         clockHands.forEach { clockHand ->
-                            val eachDegree = 360f / 60f
-
                             val angleInDegree = when (clockHand) {
-                                ClockHands.seconds -> {
-                                    seconds * eachDegree
-                                }
-
-                                ClockHands.minutes -> {
-                                    (minutes + seconds / 60f) * eachDegree
-                                }
-
-                                ClockHands.hours -> {
-                                    (60 * hours + minutes) * 30f / 60f
-                                }
+                                ClockHands.seconds -> secondRotation
+                                ClockHands.minutes -> minuteRotation
+                                ClockHands.hours -> hourRotation
                             }
 
                             val lineLength = when (clockHand) {
-                                ClockHands.seconds -> {
-                                    outerCircleRadius.times(0.7f)
-                                }
-
-                                ClockHands.minutes -> {
-                                    outerCircleRadius.times(0.8f)
-                                }
-
-                                ClockHands.hours -> {
-                                    outerCircleRadius.times(0.5f)
-                                }
+                                ClockHands.seconds -> outerCircleRadius.times(0.8f)
+                                ClockHands.minutes -> outerCircleRadius.times(0.7f)
+                                ClockHands.hours -> outerCircleRadius.times(0.5f)
                             }
 
                             val lineThickness = when (clockHand) {
-                                ClockHands.seconds -> {
-                                    3f
-                                }
-
-                                ClockHands.minutes -> {
-                                    7f
-                                }
-
-                                ClockHands.hours -> {
-                                    9f
-                                }
+                                ClockHands.seconds -> 3f
+                                ClockHands.minutes -> 5f
+                                ClockHands.hours -> 6f
                             }
-
-                            val start = Offset(
-                                x = circleCenter.x,
-                                y = circleCenter.y
-                            )
-
-                            val end = Offset(
-                                x = circleCenter.x,
-                                y = lineLength + circleCenter.y
-                            )
 
                             rotate(
                                 angleInDegree - 180,
-                                pivot = start
-                            ){
+                                pivot = center
+                            ) {
                                 drawLine(
-                                    color = if(clockHand == ClockHands.seconds) Color(0xFFFF007F) else if(clockHand == ClockHands.minutes) Color(0xFF9FA7BC) else  Color.Black,
+                                    color = if(clockHand == ClockHands.seconds) Color(0xFFFF007F)
+                                    else if(clockHand == ClockHands.minutes) Color(0xFF9FA7BC)
+                                    else Color.Black,
                                     start = center - Offset(0f, outerCircleRadius * 0.1f),
-                                    end = center + Offset(0f, outerCircleRadius * 0.5f),
+                                    end = center + Offset(0f, lineLength),
                                     strokeWidth = lineThickness.dp.toPx(),
                                     cap = StrokeCap.Round
                                 )
                             }
                         }
+
+                        // Center circle
+                        drawCircle(
+                            color = Color(0xFFFF007F),
+                            radius = 20f,
+                            center = circleCenter
+                        )
                     }
-
-
-
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -257,16 +226,10 @@ fun App() {
                 Text(text = "United States", style = MaterialTheme.typography.body2, color = Color.Gray)
 
                 Spacer(modifier = Modifier.height(32.dp))
-
-                // Bottom Navigation
-//                BottomNavigationBar()
             }
         }
     }
 }
-
-
-
 
 enum class ClockHands {
     hours, minutes, seconds
