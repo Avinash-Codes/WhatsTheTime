@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.FloatingActionButton
@@ -28,6 +30,11 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -37,6 +44,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.avinash.whatsthetime.navigation.Screen
+import com.avinash.whatsthetime.viewmodel.WorldClockViewModel
+import kotlinx.coroutines.delay
+import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.painterResource
 import whatsthetime.composeapp.generated.resources.Res
 import whatsthetime.composeapp.generated.resources.Shape
@@ -147,17 +157,59 @@ fun CustomBottomNavigation(navController: NavController, modifier: Modifier) {
 }
 
 @Composable
-fun HomeScreen(navController: NavController) {
-    Column(
+fun HomeScreen(navController: NavController,userLocalCity: String, userLocalCountry: String,TimeZone: String,viewModel: WorldClockViewModel) {
+    val clocks = viewModel.clocks
+    val currentIndex = viewModel.currentIndex.value
+    var currentTime by rememberSaveable { mutableStateOf(Clock.System.now().toString()) }
+
+    LaunchedEffect(Unit){
+        while(true){
+            delay(1000)
+            currentTime = Clock.System.now().toString()
+        }
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF8F8FF))
     ) {
+//        AnalogWatch(
+//            timeZoneId = TimeZone,
+//            cityName = CityName,
+//            countryName = CountryName
+//        )
+
+        if(clocks.isEmpty()){
+            LocalClockDisplay(
+                city = userLocalCity,
+                country = userLocalCountry,
+                timeZone = TimeZone,
+                currentTime = currentTime.toString()
+            )
+        }else{
+            HorizontalPager(
+                state = rememberPagerState{clocks.size + 1}
+            ) { page ->
+                when(page){
+                    0 -> LocalClockDisplay(
+                        city = userLocalCity,
+                        country = userLocalCountry,
+                        timeZone = TimeZone,
+                        currentTime = currentTime.toString()
+                    )
+                    else -> ClockDisplay(
+                        clocks[page - 1],
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(26.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(17.dp, 40.dp, 17.dp, 17.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             FloatingActionButton(
@@ -197,10 +249,6 @@ fun HomeScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//        AnalogWatch()
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -210,4 +258,28 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
+}
+
+@Composable
+fun LocalClockDisplay(city: String, country: String, timeZone: String, currentTime: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = city,
+            fontSize = 24.sp
+        )
+        Text(
+            text = country,
+            fontSize = 16.sp
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        AnalogWatch(
+            timeZoneId = timeZone,
+            cityName = city,
+            countryName = country,
+        )
+    }
 }

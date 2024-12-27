@@ -36,6 +36,7 @@ import kotlinx.datetime.IllegalTimeZoneException
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -59,7 +60,7 @@ enum class ClockHands {
 }
 
 @Composable
-fun AnalogWatch(timeZoneId: TimeZone) {
+fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String) {
     val currentTime = rememberSaveable { mutableStateOf(com.avinash.whatsthetime.currentDateAndTime(
         timeZoneId.toString()
     )) }
@@ -161,7 +162,7 @@ fun AnalogWatch(timeZoneId: TimeZone) {
                     // Draw markers
                     for (i in 0 until 60) {
                         val angle = i * 360f / 60
-                        val radians = Math.toRadians(angle.toDouble())
+                        val radians = angle*(PI/180)
                         val lineLength = if (i % 5 == 0) {
                             littleLine * 2 // Longer line for hour markers
                         } else {
@@ -238,9 +239,9 @@ fun AnalogWatch(timeZoneId: TimeZone) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // Labels
-            Text(text ="Chicago", style = MaterialTheme.typography.h4, color = Color(0xFFFF007F))
+            Text(text = cityName, style = MaterialTheme.typography.h4, color = Color(0xFFFF007F))
             Text(text = time ?: "--:--:--", style = MaterialTheme.typography.h5)
-            Text(text = "United States", style = MaterialTheme.typography.body2, color = Color.Gray)
+            Text(text = countryName, style = MaterialTheme.typography.body2, color = Color.Gray)
 
             Spacer(modifier = Modifier.height(32.dp))
         }

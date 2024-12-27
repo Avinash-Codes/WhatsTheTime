@@ -9,7 +9,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    kotlin("plugin.serialization") version "2.1.0"
+    alias(libs.plugins.kotlin.serialization)
 
 }
 
@@ -60,6 +60,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -71,16 +72,20 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
-            implementation ("dev.romainguy:kotlin-math:1.5.3")
             implementation("org.jetbrains.androidx.navigation:navigation-compose:2.8.0-alpha10")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0-RC")
-
-
-
+            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
+            implementation(libs.bundles.ktor)
+        }
+        nativeMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
+            implementation(libs.ktor.client.okhttp)
+
         }
 
         wasmJsMain.dependencies {
