@@ -76,6 +76,10 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0-RC")
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
             implementation(libs.bundles.ktor)
+            implementation("org.jetbrains.compose.foundation:foundation:1.7.0")
+
+            api(libs.datastore.preferences)
+            api(libs.datastore)
         }
         nativeMain.dependencies {
             implementation(libs.ktor.client.darwin)

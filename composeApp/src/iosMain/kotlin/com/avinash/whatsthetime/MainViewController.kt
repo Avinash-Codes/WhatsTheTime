@@ -8,6 +8,7 @@ import io.ktor.client.engine.darwin.Darwin
 
 fun MainViewController() = ComposeUIViewController {
     App(
+        createDataStore(),
         client =
         remember{
             LocationClient(createHttpClient(Darwin.create()))

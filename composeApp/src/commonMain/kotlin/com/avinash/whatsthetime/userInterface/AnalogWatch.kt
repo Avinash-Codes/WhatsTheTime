@@ -8,11 +8,13 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -103,147 +105,186 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String) {
             repeatMode = RepeatMode.Restart
         )
     )
-
+    val currentHour = Clock.System.now()
+        .toLocalDateTime(kotlinx.datetime.TimeZone.of(timeZoneId))
+        .hour
+    val isNightTime = currentHour in 21..23 || currentHour in 0..4
+    val backgroundColor = if (isNightTime) Color(0xFF1E2F97) else Color(0xFFF8F8FF)
+    val textColor = if (isNightTime) Color.White else Color(0xFFD00000)
     LaunchedEffect(Unit) {
         while (true) {
             currentTime.value = com.avinash.whatsthetime.currentDateAndTime(timeZoneId.toString())
             delay(1000)
         }
     }
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Brush.verticalGradient(listOf(Color(0xFFE7EEFB), Color(0xFFFFFFFF)))),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//            Column(
+//                modifier = Modifier.fillMaxSize()
+//                    .padding(horizontal = 16.dp, vertical = 32.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Top
+//            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Canvas(modifier = Modifier.size(350.dp)) {
+                        val circleCenter = center
+                        val outerCircleRadius = size.minDimension / 2f
+                        val littleLine = outerCircleRadius * 0.05f
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFFE7EEFB), Color(0xFFFFFFFF)))),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier.size(350.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val circleCenter = center
-                    val outerCircleRadius = size.minDimension / 2f
-                    val littleLine = outerCircleRadius * 0.05f
-
-                    val outerCircleBrush = Brush.radialGradient(
-                        listOf(
-                            Color(0xFFE7EEFB),
-                            Color(0xFFE7EEFB),
-                        )
-                    )
-
-                    val innerCircleBrush = Brush.radialGradient(
-                        listOf(
-                            Color(0xFFEDF1FB),
-                            Color(0xFFEDF1FB),
-                            Color(0xFFEDF1FB),
-                            Color(0xFFEDF1FB)
-                        )
-                    )
-
-                    // Outer frame circle
-                    drawCircle(
-                        brush = outerCircleBrush,
-                        radius = outerCircleRadius,
-                        center = circleCenter
-                    )
-
-                    // Inner circle
-                    drawCircle(
-                        brush = innerCircleBrush,
-                        radius = outerCircleRadius - 110,
-                        center = circleCenter
-                    )
-
-                    val markerMargin = littleLine * 0.9f
-
-                    // Draw markers
-                    for (i in 0 until 60) {
-                        val angle = i * 360f / 60
-                        val radians = angle*(PI/180)
-                        val lineLength = if (i % 5 == 0) {
-                            littleLine * 2 // Longer line for hour markers
-                        } else {
-                            littleLine // Shorter line for minute markers
-                        }
-
-                        val lineThickness = 4.5f
-
-                        val start = Offset(
-                            x = ((outerCircleRadius - markerMargin) * cos(radians) + circleCenter.x).toFloat(),
-                            y = ((outerCircleRadius - markerMargin) * sin(radians) + circleCenter.y).toFloat()
+                        val outerCircleBrush = Brush.radialGradient(
+                            if(isNightTime){
+                                listOf(
+                                    Color(0xFF344778),
+                                    Color(0xFF344778),
+                                )
+                            }else {
+                                listOf(
+                                    Color(0xFFE7EEFB),
+                                    Color(0xFFE7EEFB),
+                                )
+                            }
                         )
 
-                        val end = Offset(
-                            x = ((outerCircleRadius - markerMargin - lineLength) * cos(radians) + circleCenter.x).toFloat(),
-                            y = ((outerCircleRadius - markerMargin - lineLength) * sin(radians) + circleCenter.y).toFloat()
+                        val innerCircleBrush = Brush.radialGradient(
+                            if(isNightTime){
+                                listOf(
+                                    Color(0xFF465782),
+                                    Color(0xFF465782),
+                                )
+                            }else {
+                                listOf(
+                                    Color(0xFFEDF1FB),
+                                    Color(0xFFEDF1FB),
+                                )
+                            }
                         )
 
-                        drawLine(
-                            color = Color(0xFFFFFFFF),
-                            start = start,
-                            end = end,
-                            strokeWidth = lineThickness.dp.toPx(),
-                            cap = StrokeCap.Butt
+                        // Outer frame circle
+                        drawCircle(
+                            brush = outerCircleBrush,
+                            radius = outerCircleRadius,
+                            center = circleCenter
                         )
-                    }
 
-                    val clockHands = listOf(ClockHands.seconds, ClockHands.minutes, ClockHands.hours)
+                        // Inner circle
+                        drawCircle(
+                            brush = innerCircleBrush,
+                            radius = outerCircleRadius - 110,
+                            center = circleCenter
+                        )
 
-                    clockHands.forEach { clockHand ->
-                        val angleInDegree = when (clockHand) {
-                            ClockHands.seconds -> secondRotation
-                            ClockHands.minutes -> minuteRotation
-                            ClockHands.hours -> hourRotation
-                        }
+                        val markerMargin = littleLine * 0.9f
 
-                        val lineLength = when (clockHand) {
-                            ClockHands.seconds -> outerCircleRadius.times(0.8f)
-                            ClockHands.minutes -> outerCircleRadius.times(0.7f)
-                            ClockHands.hours -> outerCircleRadius.times(0.5f)
-                        }
+                        // Draw markers
+                        for (i in 0 until 60) {
+                            val angle = i * 360f / 60
+                            val radians = angle * (PI / 180)
+                            val lineLength = if (i % 5 == 0) {
+                                littleLine * 2 // Longer line for hour markers
+                            } else {
+                                littleLine // Shorter line for minute markers
+                            }
 
-                        val lineThickness = when (clockHand) {
-                            ClockHands.seconds -> 3f
-                            ClockHands.minutes -> 5f
-                            ClockHands.hours -> 6f
-                        }
+                            val lineThickness = 4.5f
 
-                        rotate(
-                            angleInDegree - 180,
-                            pivot = center
-                        ) {
+                            val start = Offset(
+                                x = ((outerCircleRadius - markerMargin) * cos(radians) + circleCenter.x).toFloat(),
+                                y = ((outerCircleRadius - markerMargin) * sin(radians) + circleCenter.y).toFloat()
+                            )
+
+                            val end = Offset(
+                                x = ((outerCircleRadius - markerMargin - lineLength) * cos(radians) + circleCenter.x).toFloat(),
+                                y = ((outerCircleRadius - markerMargin - lineLength) * sin(radians) + circleCenter.y).toFloat()
+                            )
+
                             drawLine(
-                                color = if(clockHand == ClockHands.seconds) Color(0xFFFF007F)
-                                else if(clockHand == ClockHands.minutes) Color(0xFF9FA7BC)
-                                else Color.Black,
-                                start = center - Offset(0f, outerCircleRadius * 0.1f),
-                                end = center + Offset(0f, lineLength),
+                                color = if(isNightTime) Color.Gray else Color(0xFFFFFFFF),
+                                start = start,
+                                end = end,
                                 strokeWidth = lineThickness.dp.toPx(),
-                                cap = StrokeCap.Round
+                                cap = StrokeCap.Butt
                             )
                         }
+
+                        val clockHands =
+                            listOf(ClockHands.seconds, ClockHands.minutes, ClockHands.hours)
+
+                        clockHands.forEach { clockHand ->
+                            val angleInDegree = when (clockHand) {
+                                ClockHands.seconds -> secondRotation
+                                ClockHands.minutes -> minuteRotation
+                                ClockHands.hours -> hourRotation
+                            }
+
+                            val lineLength = when (clockHand) {
+                                ClockHands.seconds -> outerCircleRadius.times(0.8f)
+                                ClockHands.minutes -> outerCircleRadius.times(0.7f)
+                                ClockHands.hours -> outerCircleRadius.times(0.5f)
+                            }
+
+                            val lineThickness = when (clockHand) {
+                                ClockHands.seconds -> 3f
+                                ClockHands.minutes -> 5f
+                                ClockHands.hours -> 6f
+                            }
+
+                            rotate(
+                                angleInDegree - 180,
+                                pivot = center
+                            ) {
+                                drawLine(
+                                    color = if (clockHand == ClockHands.seconds) Color(0xFFFF007F)
+                                    else if (clockHand == ClockHands.minutes) Color(0xFF9FA7BC)
+                                    else {if(isNightTime) Color.White else Color.Black},
+                                    start = center - Offset(0f, outerCircleRadius * 0.1f),
+                                    end = center + Offset(0f, lineLength),
+                                    strokeWidth = lineThickness.dp.toPx(),
+                                    cap = StrokeCap.Round
+                                )
+                            }
+                        }
+
+                        // Center circle
+                        drawCircle(
+                            color = Color(0xFFFF007F),
+                            radius = 20f,
+                            center = circleCenter
+                        )
                     }
 
-                    // Center circle
-                    drawCircle(
-                        color = Color(0xFFFF007F),
-                        radius = 20f,
-                        center = circleCenter
-                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Labels
+                    Column(
+                        modifier = Modifier,
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = cityName,
+                            style = MaterialTheme.typography.h4,
+                            color = Color(0xFFFF007F)
+                        )
+                        Text(text = time ?: "--:--:--", style = MaterialTheme.typography.h5)
+                        Text(
+                            text = timeZoneId,
+                            style = MaterialTheme.typography.body2,
+                            color = Color.Gray
+                        )
+                    }
                 }
+
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Labels
-            Text(text = cityName, style = MaterialTheme.typography.h4, color = Color(0xFFFF007F))
-            Text(text = time ?: "--:--:--", style = MaterialTheme.typography.h5)
-            Text(text = countryName, style = MaterialTheme.typography.body2, color = Color.Gray)
-
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-    }
-}
+//        }
+//    }
+//}

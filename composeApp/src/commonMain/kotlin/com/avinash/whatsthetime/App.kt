@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -63,7 +65,7 @@ fun currentTime(location: String): String? {
 
 @Composable
 @Preview
-fun App(client: LocationClient) {
+fun App(prefs:DataStore<Preferences>,client: LocationClient) {
     MaterialTheme {
         var userLocalCity by rememberSaveable{ mutableStateOf("") }
         var userLocalCountry by rememberSaveable{ mutableStateOf("") }
@@ -100,13 +102,13 @@ fun App(client: LocationClient) {
                     Text(text = "Error: $errorMessage")
                 }
             } else {
-                Text(text = "City: $userLocalCity")
-                Text(text = "Country: $userLocalCountry")
+//                Text(text = "City: $userLocalCity")
+//                Text(text = "Country: $userLocalCountry")
             }
 
         }
         val navController = rememberNavController()
-        val viewModel = WorldClockViewModel()
+        val viewModel = WorldClockViewModel(prefs)
         MainLayout(navController = navController) {
             NavHost(navController = navController, startDestination = Screen.HomeScreen.route) {
                 composable(Screen.HomeScreen.route) { HomeScreen(navController,userLocalCity, userLocalCountry, TimeZone.currentSystemDefault().toString(), viewModel) }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +22,7 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.FloatingActionButtonDefaults
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -169,42 +171,12 @@ fun HomeScreen(navController: NavController,userLocalCity: String, userLocalCoun
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .fillMaxHeight(0.77f)
             .background(Color(0xFFF8F8FF))
     ) {
-//        AnalogWatch(
-//            timeZoneId = TimeZone,
-//            cityName = CityName,
-//            countryName = CountryName
-//        )
-
-        if(clocks.isEmpty()){
-            LocalClockDisplay(
-                city = userLocalCity,
-                country = userLocalCountry,
-                timeZone = TimeZone,
-                currentTime = currentTime.toString()
-            )
-        }else{
-            HorizontalPager(
-                state = rememberPagerState{clocks.size + 1}
-            ) { page ->
-                when(page){
-                    0 -> LocalClockDisplay(
-                        city = userLocalCity,
-                        country = userLocalCountry,
-                        timeZone = TimeZone,
-                        currentTime = currentTime.toString()
-                    )
-                    else -> ClockDisplay(
-                        clocks[page - 1],
-                    )
-                }
-            }
-        }
-
         Spacer(modifier = Modifier.height(26.dp))
         Row(
             modifier = Modifier
@@ -246,16 +218,32 @@ fun HomeScreen(navController: NavController,userLocalCity: String, userLocalCoun
             }
 
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-        ) {
-
+        if(clocks.isEmpty()){
+            LocalClockDisplay(
+                city = userLocalCity,
+                country = userLocalCountry,
+                timeZone = TimeZone,
+                currentTime = currentTime.toString()
+            )
+        }else{
+            HorizontalPager(
+                state = rememberPagerState{clocks.size + 1}
+            ) { page ->
+                when(page){
+                    0 -> LocalClockDisplay(
+                        city = userLocalCity,
+                        country = userLocalCountry,
+                        timeZone = TimeZone,
+                        currentTime = currentTime.toString()
+                    )
+                    else -> ClockDisplay(
+                        clocks[page - 1],
+                    )
+                }
+            }
         }
+
+
     }
 
 }
@@ -267,15 +255,14 @@ fun LocalClockDisplay(city: String, country: String, timeZone: String, currentTi
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = city,
-            fontSize = 24.sp
-        )
-        Text(
-            text = country,
-            fontSize = 16.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+//        Text(
+//            text = city,
+//            fontSize = 24.sp
+//        )
+//        Text(
+//            text = country,
+//            fontSize = 16.sp
+//        )
         AnalogWatch(
             timeZoneId = timeZone,
             cityName = city,

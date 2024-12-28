@@ -3,14 +3,17 @@ package com.avinash.whatsthetime.dataclass
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.serialization.Serializable
 
 data class Cites(val name: String, val timeZoneId: TimeZone)
 
+@Serializable
 data class ClockItem(
     val city: String,
     val timeZoneId: String,
     val timestamp: String = Clock.System.now().toString()
 )
+
 val cites = listOf(
     Cites("Abidjan", TimeZone.of("Africa/Abidjan")),
     Cites("Accra", TimeZone.of("Africa/Accra")),

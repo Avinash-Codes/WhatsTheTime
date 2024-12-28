@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.tooling.preview.Preview
 import com.avinash.whatsthetime.api.LocationClient
 import com.avinash.whatsthetime.api.createHttpClient
@@ -17,6 +18,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             App(
+                prefs = remember {
+                    createDataStore(applicationContext)
+                },
                 client = remember{
                     LocationClient(createHttpClient(io.ktor.client.engine.okhttp.OkHttp.create()))
                 }
