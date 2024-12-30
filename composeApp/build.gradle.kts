@@ -77,9 +77,17 @@ kotlin {
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
             implementation(libs.bundles.ktor)
             implementation("org.jetbrains.compose.foundation:foundation:1.7.0")
+            implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+            implementation("io.coil-kt.coil3:coil-network-core:3.0.4")
+//            implementation ("io.coil-kt:coil-compose:2.1.0")
 
             api(libs.datastore.preferences)
             api(libs.datastore)
+
+            implementation("com.mohamedrejeb.calf:calf-file-picker-coil:0.5.1")
+            implementation("com.mohamedrejeb.calf:calf-file-picker:0.7.0")
+            implementation("com.github.skydoves:landscapist-coil3:2.4.5")
+
         }
         nativeMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -89,7 +97,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
             implementation(libs.ktor.client.okhttp)
-
         }
 
         wasmJsMain.dependencies {

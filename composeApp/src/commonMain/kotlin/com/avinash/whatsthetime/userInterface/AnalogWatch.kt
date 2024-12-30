@@ -20,6 +20,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
 import com.avinash.whatsthetime.ClockHands
+import com.avinash.whatsthetime.viewmodel.WorldClockViewModel
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.datetime.IllegalTimeZoneException
@@ -62,7 +64,9 @@ enum class ClockHands {
 }
 
 @Composable
-fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String) {
+fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String,viewModel: WorldClockViewModel) {
+    val isTwelveHourFormat by viewModel.isTwelveHourFormat.collectAsState()
+
     val currentTime = rememberSaveable { mutableStateOf(com.avinash.whatsthetime.currentDateAndTime(
         timeZoneId.toString()
     )) }
@@ -275,7 +279,14 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String) {
                             style = MaterialTheme.typography.h4,
                             color = Color(0xFFFF007F)
                         )
-                        Text(text = time ?: "--:--:--", style = MaterialTheme.typography.h5)
+                        val formattedTime = if (isTwelveHourFormat) {
+                            val hour = if (hours % 12 == 0) 12 else hours % 12
+                            val amPm = if (hours < 12) "AM" else "PM"
+                            "$hour:$minutes:$seconds $amPm"
+                        } else {
+                            "$hours:$minutes:$seconds"
+                        }
+                        Text(text = formattedTime, style = MaterialTheme.typography.h5)
                         Text(
                             text = timeZoneId,
                             style = MaterialTheme.typography.body2,

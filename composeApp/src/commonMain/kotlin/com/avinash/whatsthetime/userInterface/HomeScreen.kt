@@ -223,7 +223,8 @@ fun HomeScreen(navController: NavController,userLocalCity: String, userLocalCoun
                 city = userLocalCity,
                 country = userLocalCountry,
                 timeZone = TimeZone,
-                currentTime = currentTime.toString()
+                currentTime = currentTime.toString(),
+                viewModel = viewModel
             )
         }else{
             HorizontalPager(
@@ -234,10 +235,12 @@ fun HomeScreen(navController: NavController,userLocalCity: String, userLocalCoun
                         city = userLocalCity,
                         country = userLocalCountry,
                         timeZone = TimeZone,
-                        currentTime = currentTime.toString()
+                        currentTime = currentTime.toString(),
+                        viewModel = viewModel
                     )
                     else -> ClockDisplay(
                         clocks[page - 1],
+                        viewModel
                     )
                 }
             }
@@ -249,7 +252,7 @@ fun HomeScreen(navController: NavController,userLocalCity: String, userLocalCoun
 }
 
 @Composable
-fun LocalClockDisplay(city: String, country: String, timeZone: String, currentTime: String) {
+fun LocalClockDisplay(city: String, country: String, timeZone: String, currentTime: String, viewModel: WorldClockViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -267,6 +270,7 @@ fun LocalClockDisplay(city: String, country: String, timeZone: String, currentTi
             timeZoneId = timeZone,
             cityName = city,
             countryName = country,
+            viewModel = viewModel
         )
     }
 }

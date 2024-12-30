@@ -225,7 +225,9 @@ fun ListScreen(
                                         isSearchVisible = false
                                         searchQuery = ""
                                         navController.navigate(Screen.HomeScreen.route)
-                                    }
+                                    },
+                                    viewModel = viewModel
+
                                 )
                             }
                         }
@@ -236,7 +238,8 @@ fun ListScreen(
                                 onEditClick = {
                                     // Handle edit action
                                 },
-                                showEditIcon = true
+                                showEditIcon = true,
+                                viewModel = viewModel
                             )
                         }
                     }
@@ -248,7 +251,7 @@ fun ListScreen(
 
 
 @Composable
-fun ClockDisplay(clockItem: ClockItem) {
+fun ClockDisplay(clockItem: ClockItem,viewModel: WorldClockViewModel) {
     var currentTime by rememberSaveable { mutableStateOf(clockItem.timestamp.toString()) }
     LaunchedEffect(Unit){
         while(true){
@@ -271,6 +274,7 @@ fun ClockDisplay(clockItem: ClockItem) {
             timeZoneId = clockItem.timeZoneId,
             cityName = clockItem.city,
             countryName = "",
+            viewModel = viewModel
         )
 
     }
@@ -280,7 +284,8 @@ fun ClockListItem(
     clockItem: ClockItem,
     onAddClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
-    showEditIcon: Boolean = false
+    showEditIcon: Boolean = false,
+    viewModel: WorldClockViewModel
 ){
     Row(
         modifier = Modifier
@@ -305,6 +310,7 @@ fun ClockListItem(
                     timeZoneId = clockItem.timeZoneId,
                     cityName = clockItem.city,
                     countryName = "",
+                    viewModel =viewModel
                 )
             }
 

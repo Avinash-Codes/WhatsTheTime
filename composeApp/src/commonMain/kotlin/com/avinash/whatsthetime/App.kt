@@ -109,11 +109,12 @@ fun App(prefs:DataStore<Preferences>,client: LocationClient) {
         }
         val navController = rememberNavController()
         val viewModel = WorldClockViewModel(prefs)
+//        val viewModel2 = UserPreferences(prefs)
         MainLayout(navController = navController) {
             NavHost(navController = navController, startDestination = Screen.HomeScreen.route) {
                 composable(Screen.HomeScreen.route) { HomeScreen(navController,userLocalCity, userLocalCountry, TimeZone.currentSystemDefault().toString(), viewModel) }
                 composable(Screen.ListScreen.route) { ListScreen(navController, viewModel) }
-                composable(Screen.SettingsScreen.route) { SettingsScreen(navController) }
+                composable(Screen.SettingsScreen.route) { SettingsScreen(navController,userLocalCity, userLocalCountry, TimeZone.currentSystemDefault().toString(),viewModel) }
             }
         }
     }
