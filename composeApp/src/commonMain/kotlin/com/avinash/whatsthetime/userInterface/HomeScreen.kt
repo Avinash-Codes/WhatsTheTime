@@ -174,7 +174,7 @@ fun HomeScreen(navController: NavController,userLocalCity: String, userLocalCoun
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.77f)
+            .fillMaxHeight()
             .background(Color(0xFFF8F8FF))
     ) {
         Spacer(modifier = Modifier.height(26.dp))

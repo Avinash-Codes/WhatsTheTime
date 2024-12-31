@@ -46,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import org.jetbrains.compose.resources.painterResource
@@ -53,6 +54,7 @@ import whatsthetime.composeapp.generated.resources.Res
 import whatsthetime.composeapp.generated.resources.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
+import com.avinash.whatsthetime.getPlatform
 //import com.avinash.whatsthetime.viewmodel.UserPreferences
 import com.avinash.whatsthetime.viewmodel.WorldClockViewModel
 import com.mohamedrejeb.calf.core.LocalPlatformContext
@@ -63,9 +65,13 @@ import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil3.CoilImage
 import kotlinx.coroutines.launch
+import whatsthetime.composeapp.generated.resources.user
 
 @Composable
 fun SettingsScreen(navController: NavController, userLocalCity: String, userLocalCountry: String, TimeZone: String, viewModel: WorldClockViewModel) {
+    val platform = getPlatform()
+    val isDesktop = "Java" in platform.name
+    val isAndroid = "Android" in platform.name
 
     val scope = rememberCoroutineScope()
     val context = LocalPlatformContext.current
@@ -103,144 +109,155 @@ fun SettingsScreen(navController: NavController, userLocalCity: String, userLoca
     val isNightTime = currentHour in 21..23 || currentHour in 0..4
     val backgroundColor = if (isNightTime) Color(0xFF142550) else Color(0xFFE7EEFB)
     val textColor = if (isNightTime) Color.White else Color.Black
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                if (isEditingName) {
-                    isEditingName = false
-                    viewModel.updateUsername(userName)
 
-                }
-            })
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    if (isEditingName) {
+                        isEditingName = false
+                        viewModel.updateUsername(userName)
+                    }
+                })
+            }
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.35f)
-                .background(color = backgroundColor)
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            IconButton(
-                onClick = { navController.navigateUp() },
+            // Top Section
+            Box(
                 modifier = Modifier
-                    .padding(30.dp)
-                    .align(Alignment.TopStart)
-                    .size(48.dp)
+                    .fillMaxWidth()
+                    .weight(0.4f)
+                    .background(color = backgroundColor)
             ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color(0xFFFF69B4),
-                    modifier = Modifier.size(44.dp)
-                )
+                IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier
+                        .padding(if (isDesktop) 40.dp else 30.dp)
+                        .size(if (isDesktop) 56.dp else 48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color(0xFFFF69B4),
+                        modifier = Modifier.size(if (isDesktop) 52.dp else 44.dp)
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                       .padding(top = if (isDesktop) 100.dp else 80.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    if (isEditingName) {
+                        BasicTextField(
+                            value = userName,
+                            onValueChange = { userName = it },
+                            textStyle = androidx.compose.ui.text.TextStyle(
+                                color = textColor,
+                                fontSize = if (isDesktop) 42.sp else 34.sp,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            ),
+                            modifier = Modifier
+                                .background(Color.Transparent)
+                                .padding(12.dp)
+                        )
+                    } else {
+                        Text(
+                            text = userName,
+                            fontSize = if (isDesktop) 42.sp else 34.sp,
+                            color = textColor,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            modifier = Modifier.pointerInput(Unit) {
+                                detectTapGestures(onDoubleTap = { isEditingName = true })
+                            }
+                        )
+                    }
+                    Text(
+                        text = "$userLocalCity, $userLocalCountry",
+                        fontSize = if (isDesktop) 18.sp else 14.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                // Profile Image positioned at bottom center, overlapping the sections
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = if (isDesktop) 180.dp else 150.dp)
+                        .offset(y = if (isDesktop) 30.dp else 10.dp)
+                ) {
+                    if (!profileImageUri.isNullOrEmpty()) {
+                        CoilImage(
+                            imageModel = { profileImageUri },
+                            imageOptions = ImageOptions(
+                                contentScale = ContentScale.Crop,
+                                alignment = Alignment.Center
+                            ),
+                            modifier = Modifier
+                                .size(if (isDesktop) 140.dp else 100.dp)
+                                .clip(CircleShape)
+                                .border(if (isDesktop) 3.dp else 2.dp, Color.White, CircleShape)
+                                .clickable { pickerLauncher.launch() }
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(Res.drawable.user),
+                            contentDescription = "Profile Picture",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(if (isDesktop) 140.dp else 100.dp)
+                                .clip(CircleShape)
+                                .border(if (isDesktop) 3.dp else 2.dp, Color.White, CircleShape)
+                                .clickable { pickerLauncher.launch() }
+                        )
+                    }
+                }
             }
 
+            // Settings Section
             Column(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = 40.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .weight(0.6f)
+                    .background(Color.White)
             ) {
-                if (isEditingName) {
-                    BasicTextField(
-                        value = userName,
-                        onValueChange = {
-                            userName = it },
-                        textStyle = androidx.compose.ui.text.TextStyle(
-                            color = textColor,
-                            fontSize = 34.sp,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                        ),
-                        modifier = Modifier
-                            .background(Color.Transparent)
-                            .padding(8.dp)
-                    )
-                } else {
-                    Text(
-                        text = userName,
-                        fontSize = 34.sp,
-                        color = textColor,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        modifier = Modifier.pointerInput(Unit) {
-                            detectTapGestures(
-                                onDoubleTap = {
-                                    isEditingName = true
-                                }
-                            )
-                        }
-                    )
-                }
+                Spacer(modifier = Modifier.height(if (isDesktop) 80.dp else 60.dp))
+
                 Text(
-                    text = "$userLocalCity, $userLocalCountry",
-                    fontSize = 14.sp,
-                    color = Color.Gray
+                    text = "Settings",
+                    fontSize = if (isDesktop) 26.sp else 20.sp,
+                    modifier = Modifier.padding(
+                        start = if (isDesktop) 32.dp else 16.dp,
+                        bottom = if (isDesktop) 24.dp else 16.dp
+                    )
                 )
 
-                Spacer(modifier = Modifier.height(46.dp))
+                SettingsItem(
+                    title = "Clock Type",
+                    showArrow = true,
+                    onClick = { /* Handle clock type click */ },
+                    isDesktop = isDesktop
+                )
 
-                if (!profileImageUri.isNullOrEmpty()) {
-                    println("Displaying image from URI: $profileImageUri")
-                    CoilImage(
-                        imageModel = { profileImageUri },
-                        imageOptions = ImageOptions(
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.Center
-                        ),
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape)
-                            .clickable { pickerLauncher.launch() }
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(Res.drawable.Shape),
-                        contentDescription = "Profile Picture",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape)
-                            .clickable { pickerLauncher.launch() }
-                    )
-                }
+                SettingsItem(
+                    title = "Date Format",
+                    showArrow = true,
+                    onClick = { /* Handle date format click */ },
+                    isDesktop = isDesktop
+                )
+
+                SettingsItem(
+                    title = "24-Hour Time",
+                    showToggle = true,
+                    isToggled = !isTwelveHourFormat,
+                    onToggleChange = { viewModel.updateTwelveHourFormat(!it) },
+                    isDesktop = isDesktop
+                )
             }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.65f)
-                .align(Alignment.BottomCenter)
-                .background(Color.White)
-        ) {
-            Text(
-                text = "Settings",
-                fontSize = 20.sp,
-                modifier = Modifier.padding(start = 16.dp, top = 48.dp, bottom = 16.dp)
-            )
-
-            SettingsItem(
-                title = "Clock Type",
-                showArrow = true,
-                onClick = { /* Handle clock type click */ }
-            )
-
-            SettingsItem(
-                title = "Date Format",
-                showArrow = true,
-                onClick = { /* Handle date format click */ }
-            )
-
-            SettingsItem(
-                title = "24-Hour Time",
-                showToggle = true,
-                isToggled = !isTwelveHourFormat,
-                onToggleChange = {
-                    viewModel.updateTwelveHourFormat(!it)
-                }
-            )
         }
     }
 }
@@ -252,34 +269,39 @@ private fun SettingsItem(
     showToggle: Boolean = false,
     isToggled: Boolean = false,
     onClick: (() -> Unit)? = null,
-    onToggleChange: ((Boolean) -> Unit)? = null
+    onToggleChange: ((Boolean) -> Unit)? = null,
+    isDesktop: Boolean = false
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(
+                horizontal = if (isDesktop) 32.dp else 16.dp,
+                vertical = if (isDesktop) 12.dp else 8.dp
+            )
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(if (isDesktop) 16.dp else 12.dp),
         elevation = 0.dp,
         color = Color(0xFFF5F6FA)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-                .size(50.dp),
+                .padding(if (isDesktop) 24.dp else 16.dp)
+                .height(if (isDesktop) 60.dp else 50.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp
+                fontSize = if (isDesktop) 18.sp else 16.sp
             )
             when {
                 showArrow -> Icon(
-                    imageVector = Icons.Default.ArrowForward, // Make sure to add this resource
+                    imageVector = Icons.Default.ArrowForward,
                     contentDescription = "Navigate",
-                    tint = Color.Gray
+                    tint = Color.Gray,
+                    modifier = Modifier.size(if (isDesktop) 28.dp else 24.dp)
                 )
                 showToggle -> Switch(
                     checked = isToggled,
@@ -287,7 +309,8 @@ private fun SettingsItem(
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
                         checkedTrackColor = Color(0xFF34C759)
-                    )
+                    ),
+                    modifier = Modifier.scale(if (isDesktop) 1.2f else 1f)
                 )
             }
         }

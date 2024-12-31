@@ -1,6 +1,8 @@
 package com.avinash.whatsthetime
 
+import android.content.Context
 import android.os.Bundle
+import android.util.DisplayMetrics
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -28,4 +30,24 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+//
+//actual class ScreenConfigurationImpl(private val context: Context) : ScreenConfiguration {
+//    private val metrics: DisplayMetrics = context.resources.displayMetrics
+//
+//    actual override val screenWidth: Int
+//        get() = metrics.widthPixels
+//
+//    actual override val screenHeight: Int
+//        get() = metrics.heightPixels
+//
+//    actual override val screenDensity: Float
+//        get() = metrics.density
+//}
+
+//actual fun createScreenConfiguration(context: Any?): ScreenConfiguration {
+//    require(context is Context) { "Context is required for Android implementation" }
+//    return ScreenConfigurationImpl(context)
+//}
+
+
 

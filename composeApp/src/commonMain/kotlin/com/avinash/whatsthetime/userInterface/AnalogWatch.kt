@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.avinash.whatsthetime.ClockHands
+import com.avinash.whatsthetime.getPlatform
 import com.avinash.whatsthetime.viewmodel.WorldClockViewModel
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
@@ -137,6 +139,7 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String,viewMod
 //            ) {
                 Column(
                     modifier = Modifier
+                        .padding(bottom = 180.dp)
                         .fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -267,7 +270,7 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String,viewMod
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(36.dp))
                     // Labels
                     Column(
                         modifier = Modifier,
@@ -286,7 +289,7 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String,viewMod
                         } else {
                             "$hours:$minutes:$seconds"
                         }
-                        Text(text = formattedTime, style = MaterialTheme.typography.h5)
+                        Text(text = formattedTime, style = MaterialTheme.typography.h5, fontSize = 54.sp)
                         Text(
                             text = timeZoneId,
                             style = MaterialTheme.typography.body2,
@@ -299,3 +302,249 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String,viewMod
 //        }
 //    }
 //}
+
+
+@Composable
+fun SmallAnalogWatch(timeZoneId: String, cityName: String, countryName: String, viewModel: WorldClockViewModel) {
+    val isTwelveHourFormat by viewModel.isTwelveHourFormat.collectAsState()
+
+    val currentTime = rememberSaveable { mutableStateOf(com.avinash.whatsthetime.currentDateAndTime(
+        timeZoneId.toString()
+    )) }
+
+    // Get initial rotations based on current time
+    val (_, time) = currentTime.value
+    val (hours, minutes, seconds) = time?.split(":")?.map { it.toInt() } ?: listOf(0, 0, 0)
+
+    // Calculate initial positions (in degrees)
+    val initialSecondRotation = (seconds * 6f) // 6 degrees per second
+    val initialMinuteRotation = (minutes * 6f) + (seconds * 0.1f) // 6 degrees per minute + slight adjustment for seconds
+    val initialHourRotation = (hours % 12 * 30f) + (minutes * 0.5f) // 30 degrees per hour + adjustment for minutes
+
+    // Create animated rotation values with correct initial positions
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val secondRotation by infiniteTransition.animateFloat(
+        initialValue = initialSecondRotation,
+        targetValue = initialSecondRotation + 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(60000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    val minuteRotation by infiniteTransition.animateFloat(
+        initialValue = initialMinuteRotation,
+        targetValue = initialMinuteRotation + 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3600000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    val hourRotation by infiniteTransition.animateFloat(
+        initialValue = initialHourRotation,
+        targetValue = initialHourRotation + 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(43200000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+    val currentHour = Clock.System.now()
+        .toLocalDateTime(kotlinx.datetime.TimeZone.of(timeZoneId))
+        .hour
+    val isNightTime = currentHour in 21..23 || currentHour in 0..4
+    val backgroundColor = if (isNightTime) Color(0xFF1E2F97) else Color(0xFFF8F8FF)
+    val textColor = if (isNightTime) Color.White else Color(0xFFD00000)
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime.value = com.avinash.whatsthetime.currentDateAndTime(timeZoneId.toString())
+            delay(1000)
+        }
+    }
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Brush.verticalGradient(listOf(Color(0xFFE7EEFB), Color(0xFFFFFFFF)))),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//            Column(
+//                modifier = Modifier.fillMaxSize()
+//                    .padding(horizontal = 16.dp, vertical = 32.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Top
+//            ) {
+    val platform = getPlatform()
+    println("Platform: ${platform.name}")
+    var android = false
+    var desktop = false
+    if("Android" in platform.name) android = true
+    if("Java" in platform.name) desktop = true
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Canvas(
+            modifier = if(android)
+            Modifier.size(350.dp)
+            else Modifier.size(502.dp)
+        ) {
+            val circleCenter = center
+            val outerCircleRadius = if(android)size.minDimension / 2f else size.minDimension
+            val littleLine = if(android)outerCircleRadius * 0.05f else outerCircleRadius * 0.05f
+
+            val outerCircleBrush = Brush.radialGradient(
+                if(isNightTime){
+                    listOf(
+                        Color(0xFF344778),
+                        Color(0xFF344778),
+                    )
+                }else {
+                    listOf(
+                        Color(0xFFE7EEFB),
+                        Color(0xFFE7EEFB),
+                    )
+                }
+            )
+
+            val innerCircleBrush = Brush.radialGradient(
+                if(isNightTime){
+                    listOf(
+                        Color(0xFF465782),
+                        Color(0xFF465782),
+                    )
+                }else {
+                    listOf(
+                        Color(0xFFEDF1FB),
+                        Color(0xFFEDF1FB),
+                    )
+                }
+            )
+
+            // Outer frame circle
+            drawCircle(
+                brush = outerCircleBrush,
+                radius = outerCircleRadius,
+                center = circleCenter
+            )
+
+            // Inner circle
+            drawCircle(
+                brush = innerCircleBrush,
+                radius = if(android)outerCircleRadius - 110 else outerCircleRadius - 200,
+                center = circleCenter
+            )
+
+            val markerMargin = littleLine * 0.9f
+
+            // Draw markers
+            for (i in 0 until 60) {
+                val angle = i * 360f / 60
+                val radians = angle * (PI / 180)
+                val lineLength = if (i % 5 == 0) {
+                    littleLine * 2 // Longer line for hour markers
+                } else {
+                    littleLine // Shorter line for minute markers
+                }
+
+                val lineThickness = 4.5f
+
+                val start = Offset(
+                    x = ((outerCircleRadius - markerMargin) * cos(radians) + circleCenter.x).toFloat(),
+                    y = ((outerCircleRadius - markerMargin) * sin(radians) + circleCenter.y).toFloat()
+                )
+
+                val end = Offset(
+                    x = ((outerCircleRadius - markerMargin - lineLength) * cos(radians) + circleCenter.x).toFloat(),
+                    y = ((outerCircleRadius - markerMargin - lineLength) * sin(radians) + circleCenter.y).toFloat()
+                )
+
+                drawLine(
+                    color = if(isNightTime) Color.Gray else Color(0xFFFFFFFF),
+                    start = start,
+                    end = end,
+                    strokeWidth = lineThickness.dp.toPx(),
+                    cap = StrokeCap.Butt
+                )
+            }
+
+            val clockHands =
+                listOf(ClockHands.seconds, ClockHands.minutes, ClockHands.hours)
+
+            clockHands.forEach { clockHand ->
+                val angleInDegree = when (clockHand) {
+                    ClockHands.seconds -> secondRotation
+                    ClockHands.minutes -> minuteRotation
+                    ClockHands.hours -> hourRotation
+                }
+
+                val lineLength = when (clockHand) {
+                    ClockHands.seconds -> outerCircleRadius.times(0.8f)
+                    ClockHands.minutes -> outerCircleRadius.times(0.7f)
+                    ClockHands.hours -> outerCircleRadius.times(0.5f)
+                }
+
+                val lineThickness = when (clockHand) {
+                    ClockHands.seconds -> 1f
+                    ClockHands.minutes -> 3f
+                    ClockHands.hours -> 4f
+                }
+
+                rotate(
+                    angleInDegree - 180,
+                    pivot = center
+                ) {
+                    drawLine(
+                        color = if (clockHand == ClockHands.seconds) Color(0xFFFF007F)
+                        else if (clockHand == ClockHands.minutes) Color(0xFF9FA7BC)
+                        else {if(isNightTime) Color.White else Color.Black},
+                        start = center - Offset(0f, outerCircleRadius * 0.1f),
+                        end = center + Offset(0f, lineLength),
+                        strokeWidth = lineThickness.dp.toPx(),
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+
+            // Center circle
+            drawCircle(
+                color = Color(0xFFFF007F),
+                radius = if(android)10f else 5f,
+                center = circleCenter
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        // Labels
+        Column(
+            modifier = Modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = cityName,
+                style = MaterialTheme.typography.h4,
+                color = Color(0xFFFF007F)
+            )
+            val formattedTime = if (isTwelveHourFormat) {
+                val hour = if (hours % 12 == 0) 12 else hours % 12
+                val amPm = if (hours < 12) "AM" else "PM"
+                "$hour:$minutes:$seconds $amPm"
+            } else {
+                "$hours:$minutes:$seconds"
+            }
+            Text(text = formattedTime, style = MaterialTheme.typography.h5)
+            Text(
+                text = timeZoneId,
+                style = MaterialTheme.typography.body2,
+                color = Color.Gray
+            )
+        }
+    }
+
+}

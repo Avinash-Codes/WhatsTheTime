@@ -34,6 +34,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
@@ -53,13 +54,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.avinash.whatsthetime.ScreenConfiguration
+//import com.avinash.whatsthetime.ScreenConfigurationImpl
+//import com.avinash.whatsthetime.createScreenConfiguration
 import com.avinash.whatsthetime.currentTime
 import com.avinash.whatsthetime.dataclass.Cites
 import com.avinash.whatsthetime.dataclass.ClockItem
 import com.avinash.whatsthetime.dataclass.cites
+import com.avinash.whatsthetime.getPlatform
 import com.avinash.whatsthetime.navigation.Screen
 import com.avinash.whatsthetime.viewmodel.WorldClockViewModel
 import kotlinx.coroutines.delay
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun ListScreen(
@@ -236,7 +244,7 @@ fun ListScreen(
                             ClockListItem(
                                 clockItem = clockItem,
                                 onEditClick = {
-                                    // Handle edit action
+                                    viewModel.removeClock(clockItem)
                                 },
                                 showEditIcon = true,
                                 viewModel = viewModel
@@ -279,6 +287,8 @@ fun ClockDisplay(clockItem: ClockItem,viewModel: WorldClockViewModel) {
 
     }
 }
+
+
 @Composable
 fun ClockListItem(
     clockItem: ClockItem,
@@ -286,49 +296,107 @@ fun ClockListItem(
     onEditClick: () -> Unit = {},
     showEditIcon: Boolean = false,
     viewModel: WorldClockViewModel
-){
+) {
+    val platform = getPlatform()
+    println("Platform: ${platform.name}")
+    var android = false
+    var desktop = false
+    if ("Android" in platform.name) android = true
+    if ("Java" in platform.name) desktop = true
+
+    val localTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    val targetTime = Clock.System.now().toLocalDateTime(TimeZone.of(clockItem.timeZoneId))
+    val timeDifference = targetTime.hour - localTime.hour
+    val timeDifferenceMinutes = targetTime.minute - localTime.minute
+    val timeDifferenceString = if (timeDifference >= 0) {
+        "+${timeDifference}:${timeDifferenceMinutes.toString().padStart(2, '0')}"
+    } else {
+        "${timeDifference}:${timeDifferenceMinutes.toString().padStart(2, '0')}"
+    }
+
+    val dayInfo = when {
+        targetTime.date == localTime.date -> "Today"
+        targetTime.date > localTime.date -> "Tomorrow"
+        else -> "Yesterday"
+    }
+
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(Color(0xFFd1def0), RoundedCornerShape(12.dp))
-            .padding(16.dp)
-            .size(72.dp),
+        modifier = if (android) {
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .background(Color(0xFFd1def0), RoundedCornerShape(12.dp))
+                .padding(16.dp)
+                .size(72.dp)
+        } else {
+            // Desktop-specific styling
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp, vertical = 24.dp)
+                .background(Color(0xFFd1def0), RoundedCornerShape(16.dp))
+                .padding(24.dp)
+                .height(160.dp)
+        },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
-        ){
+        ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Color(0xFFF1F1F1), CircleShape),
-            ){
-                AnalogWatch(
+                modifier = if (android) {
+                    Modifier
+                        .size(52.dp)
+                        .background(Color(0xFFF1F1F1), CircleShape)
+                } else {
+                    // Desktop-specific watch size
+                    Modifier
+                        .size(120.dp)
+                        .background(Color(0xFFF1F1F1), CircleShape)
+                        .clip(CircleShape)
+                }
+            ) {
+                SmallAnalogWatch(
                     timeZoneId = clockItem.timeZoneId,
                     cityName = clockItem.city,
                     countryName = "",
-                    viewModel =viewModel
+                    viewModel = viewModel
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = if (android) Modifier.width(16.dp) else Modifier.width(32.dp))
 
             Column {
                 Text(
                     text = clockItem.city,
-                    style = MaterialTheme.typography.subtitle1,
+                    style = if (android) {
+                        MaterialTheme.typography.subtitle1
+                    } else {
+                        MaterialTheme.typography.h6
+                    },
                     fontWeight = FontWeight.Medium
                 )
                 currentTime(clockItem.timeZoneId)?.let {
                     Text(
                         text = it,
-                        style = MaterialTheme.typography.caption,
+                        style = if (android) {
+                            MaterialTheme.typography.caption
+                        } else {
+                            MaterialTheme.typography.subtitle1
+                        },
                         color = Color.Gray
                     )
                 }
+                Text(
+                    text = "$timeDifferenceString $dayInfo",
+                    style = if (android) {
+                        MaterialTheme.typography.caption
+                    } else {
+                        MaterialTheme.typography.subtitle1
+                    },
+                    color = Color.Gray
+                )
             }
         }
 
@@ -338,15 +406,17 @@ fun ClockListItem(
                     Icon(
                         Icons.Default.Edit,
                         contentDescription = "Edit",
-                        tint = Color(0xFFD81F72)
+                        tint = Color(0xFFD81F72),
+                        modifier = if (android) Modifier.size(24.dp) else Modifier.size(32.dp)
                     )
                 }
             } else {
                 IconButton(onClick = onAddClick) {
                     Icon(
-                        Icons.Default.Add,
+                        Icons.Default.AddCircle,
                         contentDescription = "Add",
-                        tint = Color(0xFFD81F72)
+                        tint = Color(0xFFD81F72),
+                        modifier = if (android) Modifier.size(32.dp) else Modifier.size(48.dp)
                     )
                 }
             }

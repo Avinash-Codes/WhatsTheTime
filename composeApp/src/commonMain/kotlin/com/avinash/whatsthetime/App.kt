@@ -43,6 +43,13 @@ import util.onSuccess
 import kotlin.math.cos
 import kotlin.math.sin
 
+interface ScreenConfiguration {
+    val screenWidth: Int
+    val screenHeight: Int
+    val screenDensity: Float
+}
+
+
 fun currentDateAndTime(location: String): Pair<String?, String?> {
     fun LocalTime.formatted() = "$hour:$minute:$second"
 
