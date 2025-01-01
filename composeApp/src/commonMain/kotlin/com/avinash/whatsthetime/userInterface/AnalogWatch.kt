@@ -137,6 +137,14 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String,viewMod
 //                horizontalAlignment = Alignment.CenterHorizontally,
 //                verticalArrangement = Arrangement.Top
 //            ) {
+
+    val platform = getPlatform()
+    println("Platform: ${platform.name}")
+    var android = false
+    var desktop = false
+    if("Android" in platform.name) android = true
+    if("Java" in platform.name) desktop = true
+
                 Column(
                     modifier = Modifier
                         .padding(bottom = 180.dp)
@@ -265,7 +273,7 @@ fun AnalogWatch(timeZoneId: String,cityName: String, countryName: String,viewMod
                         // Center circle
                         drawCircle(
                             color = Color(0xFFFF007F),
-                            radius = 20f,
+                            radius = if(desktop)10f else 20f,
                             center = circleCenter
                         )
                     }
@@ -395,7 +403,7 @@ fun SmallAnalogWatch(timeZoneId: String, cityName: String, countryName: String, 
             else Modifier.size(502.dp)
         ) {
             val circleCenter = center
-            val outerCircleRadius = if(android)size.minDimension / 2f else size.minDimension
+            val outerCircleRadius = if(android)size.minDimension / 2f else size.minDimension/1.5f
             val littleLine = if(android)outerCircleRadius * 0.05f else outerCircleRadius * 0.05f
 
             val outerCircleBrush = Brush.radialGradient(
