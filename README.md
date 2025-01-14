@@ -3,8 +3,13 @@
 <div align="center">
   <p float="left">
     <img src="https://github.com/user-attachments/assets/20d73b70-9a02-470f-9869-907ee65294b2" width="250" />
-    <img src="https://github.com/user-attachments/assets/126caf59-0989-4d04-80f6-19eb589f96f6" width="250" />
     <img src="https://github.com/user-attachments/assets/88394a54-075f-4a05-a08b-190f891b2ea3" width="250" />
+  </p>
+</div>
+
+<div align="center">
+  <p float="left">
+    <img src="https://github.com/user-attachments/assets/126caf59-0989-4d04-80f6-19eb589f96f6" width="500" />
   </p>
 </div>
 
